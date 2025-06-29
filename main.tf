@@ -69,11 +69,13 @@ resource "aws_iam_role" "lambda_exec_role" {
   name = "lambda_exec_role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
-    Statement = [{
-      Action = "sts:AssumeRole",
-      Principal = { Service = "lambda.amazonaws.com" },
-      Effect = "Allow"
-    }]
+    Statement = [
+      {
+        Action = "sts:AssumeRole",
+        Principal = { Service = "lambda.amazonaws.com" },
+        Effect   = "Allow"
+      }
+    ]
   })
 }
 
@@ -91,8 +93,7 @@ resource "aws_lambda_function" "node_lambda" {
   timeout       = 3
   memory_size   = 128
 
-  #Only hash if file exists
-  source_code_hash = fileexists("${path.module}/lambda.zip") ? filebase64sha256("${path.module}/lambda.zip") : ""
+  source_code_hash = fileexists("${path.module}/lambda.zip") ? filebase64sha256("${path.module}/lambda.zip") : null
 
   depends_on = [aws_iam_role_policy_attachment.lambda_basic]
 }
@@ -133,4 +134,8 @@ resource "aws_lambda_permission" "alb_invoke" {
 resource "aws_lb_target_group_attachment" "lambda_attach" {
   target_group_arn = aws_lb_target_group.lambda_tg.arn
   target_id        = aws_lambda_function.node_lambda.arn
+
+  depends_on = [
+    aws_lambda_permission.alb_invoke
+  ]
 }
