@@ -1,45 +1,37 @@
-name: Deploy Lambda with Terraform
+name: Terraform CI/CD
 
 on:
   push:
     branches:
-      - main  # Trigger only when pushing to main
+      - main
 
 jobs:
-  deploy:
+  terraform:
+    name: Terraform Destroy and Apply
     runs-on: ubuntu-latest
 
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_REGION: ap-south-1
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: 1.6.6
-
-      - name: Install zip utility
-        run: sudo apt-get install zip -y
-
-      - name: Create lambda.zip from index.js
-        run: zip lambda.zip index.js
+          terraform_version: 1.5.7
 
       - name: Terraform Init
         run: terraform init
 
-      - name: Terraform Validate
-        run: terraform validate
+      - name: Terraform Destroy (Clean Previous Resources)
+        run: terraform destroy -auto-approve
 
       - name: Terraform Plan
-        run: terraform plan -var-file="terraform.tfvars"
+        run: terraform plan
 
-      - name: Terraform Destroy (Cleanup)
-        run: terraform destroy -auto-approve || true
-
-      - name: Terraform Apply
-        run: terraform apply -auto-approve -var-file="terraform.tfvars"
+      - name: Terraform Apply (Create Fresh Resources)
+        run: terraform apply -auto-approve
