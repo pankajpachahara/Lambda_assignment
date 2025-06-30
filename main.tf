@@ -98,7 +98,6 @@ resource "aws_lambda_function" "node_lambda" {
   depends_on = [aws_iam_role_policy_attachment.lambda_basic]
 }
 
-
 # ------------------- ALB + Lambda Integration -------------------
 
 resource "aws_lb" "app_lb" {
