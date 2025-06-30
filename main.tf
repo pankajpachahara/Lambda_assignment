@@ -95,8 +95,11 @@ resource "aws_lambda_function" "node_lambda" {
 
   source_code_hash = fileexists("${path.module}/lambda.zip") ? filebase64sha256("${path.module}/lambda.zip") : null
 
+  provisioned_concurrent_executions = 1  # <-- This keeps 1 Lambda instance warm
+
   depends_on = [aws_iam_role_policy_attachment.lambda_basic]
 }
+
 
 # ------------------- ALB + Lambda Integration -------------------
 
