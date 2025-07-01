@@ -12,16 +12,21 @@ data "aws_vpc" "default" {
   default = true
 }
 
-data "aws_subnet_ids" "default" {
-  vpc_id = data.aws_vpc.default.id
+# ✅ Fixed: Correct way to get subnet IDs in the default VPC
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
 }
 
+# Get first two subnets (adjust if fewer exist in your default VPC)
 data "aws_subnet" "subnet1" {
-  id = data.aws_subnet_ids.default.ids[0]
+  id = data.aws_subnets.default.ids[0]
 }
 
 data "aws_subnet" "subnet2" {
-  id = data.aws_subnet_ids.default.ids[1]
+  id = data.aws_subnets.default.ids[1]
 }
 
 # ------------------- SECURITY GROUP -------------------
@@ -101,6 +106,7 @@ resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.app_lb.arn
   port              = "80"
   protocol          = "HTTP"
+
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.lambda_tg.arn
