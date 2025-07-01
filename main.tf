@@ -2,6 +2,10 @@ provider "aws" {
   region = var.aws_region
 }
 
+resource "random_id" "suffix" {
+  byte_length = 4
+}
+
 # ------------------- NETWORKING -------------------
 
 resource "aws_vpc" "main" {
@@ -66,7 +70,8 @@ resource "aws_security_group" "alb_sg" {
 # ------------------- IAM + LAMBDA -------------------
 
 resource "aws_iam_role" "lambda_exec_role" {
-  name = "lambda_exec_role"
+  name = "lambda_exec_role-${random_id.suffix.hex}"
+
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
@@ -85,7 +90,7 @@ resource "aws_iam_role_policy_attachment" "lambda_basic" {
 }
 
 resource "aws_lambda_function" "node_lambda" {
-  function_name = "nodejs-lambda"
+  function_name = "nodejs-lambda-${random_id.suffix.hex}"
   role          = aws_iam_role.lambda_exec_role.arn
   handler       = "index.handler"
   runtime       = "nodejs18.x"
@@ -101,7 +106,7 @@ resource "aws_lambda_function" "node_lambda" {
 # ------------------- ALB + Lambda Integration -------------------
 
 resource "aws_lb" "app_lb" {
-  name               = "lambda-alb"
+  name               = "lambda-alb-${random_id.suffix.hex}"
   internal           = false
   load_balancer_type = "application"
   subnets            = [aws_subnet.subnet1.id, aws_subnet.subnet2.id]
@@ -109,7 +114,7 @@ resource "aws_lb" "app_lb" {
 }
 
 resource "aws_lb_target_group" "lambda_tg" {
-  name        = "lambda-target"
+  name        = "lambda-target-${random_id.suffix.hex}"
   target_type = "lambda"
 }
 
