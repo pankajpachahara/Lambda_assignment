@@ -12,7 +12,7 @@ data "aws_vpc" "default" {
   default = true
 }
 
-# ✅ Fixed: Correct way to get subnet IDs in the default VPC
+# ✅ Correct data source to get subnet IDs
 data "aws_subnets" "default" {
   filter {
     name   = "vpc-id"
@@ -20,7 +20,7 @@ data "aws_subnets" "default" {
   }
 }
 
-# Get first two subnets (adjust if fewer exist in your default VPC)
+# First two subnets
 data "aws_subnet" "subnet1" {
   id = data.aws_subnets.default.ids[0]
 }
@@ -32,7 +32,7 @@ data "aws_subnet" "subnet2" {
 # ------------------- SECURITY GROUP -------------------
 
 resource "aws_security_group" "alb_sg" {
-  name        = "alb-sg"
+  name        = "alb-sg-${random_id.suffix.hex}"  # ✅ Unique name
   description = "Allow HTTP traffic"
   vpc_id      = data.aws_vpc.default.id
 
@@ -48,6 +48,10 @@ resource "aws_security_group" "alb_sg" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "alb-sg-${random_id.suffix.hex}"
   }
 }
 
@@ -95,6 +99,10 @@ resource "aws_lb" "app_lb" {
   load_balancer_type = "application"
   subnets            = [data.aws_subnet.subnet1.id, data.aws_subnet.subnet2.id]
   security_groups    = [aws_security_group.alb_sg.id]
+
+  tags = {
+    Name = "lambda-alb-${random_id.suffix.hex}"
+  }
 }
 
 resource "aws_lb_target_group" "lambda_tg" {
