@@ -4,7 +4,7 @@ exports.handler = async (event) => {
     headers: {
       "Content-Type": "text/plain"
     },
-    body: "Hello from CloudTechner. This is the demo of Lambda_function",
+    body: "Hello from CloudTechner. This is the demo of Lambda_functions .",
   };
 };
 
