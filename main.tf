@@ -90,7 +90,7 @@ resource "aws_lambda_function" "node_lambda" {
   handler       = "index.handler"
   runtime       = "nodejs18.x"
   filename      = "${path.module}/lambda.zip"
-  timeout       = 3
+  timeout       = 30
   memory_size   = 128
 
   source_code_hash = fileexists("${path.module}/lambda.zip") ? filebase64sha256("${path.module}/lambda.zip") : null
