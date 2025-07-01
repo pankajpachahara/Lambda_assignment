@@ -6,51 +6,30 @@ resource "random_id" "suffix" {
   byte_length = 4
 }
 
-# ------------------- NETWORKING -------------------
+# ------------------- USE DEFAULT VPC -------------------
 
-resource "aws_vpc" "main" {
-  cidr_block = var.vpc_cidr
+data "aws_vpc" "default" {
+  default = true
 }
 
-resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.main.id
+data "aws_subnet_ids" "default" {
+  vpc_id = data.aws_vpc.default.id
 }
 
-resource "aws_subnet" "subnet1" {
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = var.subnet1_cidr
-  availability_zone = "${var.aws_region}a"
+data "aws_subnet" "subnet1" {
+  id = data.aws_subnet_ids.default.ids[0]
 }
 
-resource "aws_subnet" "subnet2" {
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = var.subnet2_cidr
-  availability_zone = "${var.aws_region}b"
+data "aws_subnet" "subnet2" {
+  id = data.aws_subnet_ids.default.ids[1]
 }
 
-resource "aws_route_table" "rt" {
-  vpc_id = aws_vpc.main.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.igw.id
-  }
-}
-
-resource "aws_route_table_association" "rta1" {
-  subnet_id      = aws_subnet.subnet1.id
-  route_table_id = aws_route_table.rt.id
-}
-
-resource "aws_route_table_association" "rta2" {
-  subnet_id      = aws_subnet.subnet2.id
-  route_table_id = aws_route_table.rt.id
-}
+# ------------------- SECURITY GROUP -------------------
 
 resource "aws_security_group" "alb_sg" {
   name        = "alb-sg"
   description = "Allow HTTP traffic"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = data.aws_vpc.default.id
 
   ingress {
     from_port   = 80
@@ -109,7 +88,7 @@ resource "aws_lb" "app_lb" {
   name               = "lambda-alb-${random_id.suffix.hex}"
   internal           = false
   load_balancer_type = "application"
-  subnets            = [aws_subnet.subnet1.id, aws_subnet.subnet2.id]
+  subnets            = [data.aws_subnet.subnet1.id, data.aws_subnet.subnet2.id]
   security_groups    = [aws_security_group.alb_sg.id]
 }
 
