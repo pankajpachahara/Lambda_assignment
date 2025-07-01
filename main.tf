@@ -22,7 +22,7 @@ data "aws_vpc" "default" {
   default = true
 }
 
-# ✅ Correct data source to get subnet IDs
+#Correct data source to get subnet IDs
 data "aws_subnets" "default" {
   filter {
     name   = "vpc-id"
@@ -42,7 +42,7 @@ data "aws_subnet" "subnet2" {
 # ------------------- SECURITY GROUP -------------------
 
 resource "aws_security_group" "alb_sg" {
-  name        = "alb-sg-${random_id.suffix.hex}"  # ✅ Unique name
+  name        = "alb-sg-${random_id.suffix.hex}" 
   description = "Allow HTTP traffic"
   vpc_id      = data.aws_vpc.default.id
 
@@ -93,7 +93,7 @@ resource "aws_lambda_function" "node_lambda" {
   handler       = "index.handler"
   runtime       = "nodejs18.x"
   filename      = "${path.module}/lambda.zip"
-  timeout       = 30
+  timeout       = 300
   memory_size   = 128
 
   source_code_hash = fileexists("${path.module}/lambda.zip") ? filebase64sha256("${path.module}/lambda.zip") : null
