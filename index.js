@@ -7,3 +7,4 @@ exports.handler = async (event) => {
     body: "Hello from Node.js Lambda!",
   };
 };
+
